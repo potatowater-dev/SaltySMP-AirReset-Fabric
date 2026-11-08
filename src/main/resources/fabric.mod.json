@@ -3,7 +3,7 @@
   "id": "airreset",
   "version": "${version}",
   "name": "AirReset",
-  "description": "Client-side wind-charge fall reset. Toggle in Mod Menu. Server whitelist auto-disables off-list.",
+  "description": "Client-side wind-charge fall reset. Toggle in Mod Menu. Empty server whitelist means off everywhere.",
   "authors": [
     "_potatowater"
   ],

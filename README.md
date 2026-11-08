@@ -1,16 +1,9 @@
-# AirReset (Fabric)
+﻿# AirReset
 
-Client-side wind-charge fall reset for Minecraft 1.21.11.
+client mod for 1.21.11. uses a wind charge to reset fall damage.
 
-## Features
-- Mod Menu + Cloth Config toggle
-- Server whitelist (auto-disables when not listed; empty list = all servers)
-- Cancels downward momentum while keeping client fall distance
+needs fabric api + cloth config. mod menu optional.
 
-## Dependencies
-- Fabric API
-- Cloth Config
-- Mod Menu (recommended)
+config has a server whitelist. leave it empty if you don't want it on every server.
 
-## Note
-This is client prediction. Full smash sync on multiplayer still depends on the server; use the Paper AirReset plugin on servers you control.
+on a server you own, pair it with the paper airreset plugin if you want it to sync properly.

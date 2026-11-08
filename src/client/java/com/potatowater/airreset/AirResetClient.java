@@ -6,8 +6,12 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.projectile.hurtingprojectile.windcharge.AbstractWindCharge;
+import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.potatowater.airreset.mixin.AbstractWindChargeInvoker;
 
 public final class AirResetClient implements ClientModInitializer {
 
@@ -16,7 +20,8 @@ public final class AirResetClient implements ClientModInitializer {
 
     private static int settleTicksRemaining;
     private static double savedFallDistance;
-    private static boolean lastAllowed = true;
+    private static boolean lastAllowed = false;
+    private static boolean pendingWindChargeBurst;
 
     @Override
     public void onInitializeClient() {
@@ -27,11 +32,21 @@ public final class AirResetClient implements ClientModInitializer {
 
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             settleTicksRemaining = 0;
-            lastAllowed = true;
+            pendingWindChargeBurst = false;
+            lastAllowed = false;
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.player == null || settleTicksRemaining <= 0) {
+            if (client.player == null) {
+                return;
+            }
+
+            if (pendingWindChargeBurst) {
+                burstOwnWindCharges(client.player);
+                pendingWindChargeBurst = false;
+            }
+
+            if (settleTicksRemaining <= 0) {
                 return;
             }
 
@@ -64,6 +79,7 @@ public final class AirResetClient implements ClientModInitializer {
         lastAllowed = allowed;
         if (!allowed) {
             settleTicksRemaining = 0;
+            pendingWindChargeBurst = false;
         }
     }
 
@@ -94,9 +110,27 @@ public final class AirResetClient implements ClientModInitializer {
         player.setDeltaMovement(motion.x, 0.0D, motion.z);
         player.fallDistance = Math.max(player.fallDistance, savedFallDistance);
         settleTicksRemaining = Math.max(1, AirResetConfig.INSTANCE.settleTicks);
+        pendingWindChargeBurst = true;
+        burstOwnWindCharges(player);
         LOGGER.debug("AirReset activated (vy was {}, fall {})", vy, savedFallDistance);
 
         return true;
+    }
+
+    private static void burstOwnWindCharges(LocalPlayer player) {
+        var level = player.level();
+        var searchBox = player.getBoundingBox().inflate(6.0D);
+        for (AbstractWindCharge charge : level.getEntitiesOfClass(
+                AbstractWindCharge.class,
+                searchBox,
+                entity -> entity.isAlive() && (entity.getOwner() == null || entity.getOwner() == player)
+        )) {
+            Vec3 hitPos = charge.position();
+            ((AbstractWindChargeInvoker) charge).airreset$explode(hitPos);
+            if (charge.isAlive()) {
+                charge.discard();
+            }
+        }
     }
 
     private static void applySettle(LocalPlayer player) {

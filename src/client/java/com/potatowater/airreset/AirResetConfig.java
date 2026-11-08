@@ -21,7 +21,7 @@ public final class AirResetConfig {
     public float minPitch = 80.0F;
     public double requiredDownwardVelocity = 0.8D;
     public int settleTicks = 5;
-    /** When non-empty, AirReset only runs on these servers. Off everywhere else. */
+    /** Only these servers are allowed. Empty list = no servers (always off). */
     public List<String> serverWhitelist = new ArrayList<>();
 
     public static AirResetConfig INSTANCE = new AirResetConfig();

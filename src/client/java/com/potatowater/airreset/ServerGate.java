@@ -13,7 +13,7 @@ public final class ServerGate {
     public static boolean isCurrentServerAllowed() {
         var whitelist = AirResetConfig.INSTANCE.serverWhitelist;
         if (whitelist == null || whitelist.isEmpty()) {
-            return true;
+            return false;
         }
 
         Minecraft client = Minecraft.getInstance();
